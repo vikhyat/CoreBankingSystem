@@ -22,5 +22,5 @@ end
 loop do
   url = random_request_url
   puts url
-  open(url).read
+  open(url).read rescue nil
 end

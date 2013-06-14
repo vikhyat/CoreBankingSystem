@@ -35,7 +35,7 @@ func getBalance(account int) int {
 	redisConnection(account).Do("HSETNX", "accounts", account, 0)
 	balance, err := redis.Int(redisConnection(account).Do("HGET", "accounts", account))
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	return balance
 }
@@ -70,7 +70,7 @@ func releaseLock(account int) {
 func depositHandler(w http.ResponseWriter, r *http.Request) {
 	account, err := strconv.Atoi(r.FormValue("account"))
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 
 	if err := acquireLock(account); err != nil {
@@ -81,7 +81,7 @@ func depositHandler(w http.ResponseWriter, r *http.Request) {
 
 	amount, err := strconv.Atoi(r.FormValue("amount"))
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 
 	getBalance(account)
@@ -93,7 +93,7 @@ func depositHandler(w http.ResponseWriter, r *http.Request) {
 func withdrawHandler(w http.ResponseWriter, r *http.Request) {
 	account, err := strconv.Atoi(r.FormValue("account"))
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 
 	if err := acquireLock(account); err != nil {
@@ -104,7 +104,7 @@ func withdrawHandler(w http.ResponseWriter, r *http.Request) {
 
 	amount, err := strconv.Atoi(r.FormValue("amount"))
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 
 	if getBalance(account) >= amount {
@@ -118,7 +118,7 @@ func withdrawHandler(w http.ResponseWriter, r *http.Request) {
 func transferHandler(w http.ResponseWriter, r *http.Request) {
 	source, err := strconv.Atoi(r.FormValue("source"))
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 
 	if err := acquireLock(source); err != nil {
@@ -129,7 +129,7 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 
 	destination, err := strconv.Atoi(r.FormValue("destination"))
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 
 	if err := acquireLock(destination); err != nil {
@@ -140,7 +140,7 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 
 	amount, err := strconv.Atoi(r.FormValue("amount"))
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 
 	if getBalance(source) >= amount {
@@ -159,7 +159,7 @@ func main() {
 	for i, s := range redisInstances {
 		redisConnectionShards[i], redisErr = redis.Dial("tcp", s)
 		if redisErr != nil {
-			log.Fatal(redisErr)
+			log.Print(redisErr)
 		}
 	}
 
@@ -167,5 +167,5 @@ func main() {
 	http.HandleFunc("/withdraw", withdrawHandler)
 	http.HandleFunc("/transfer", transferHandler)
 
-	log.Fatal(http.ListenAndServe(":8341", nil))
+	log.Print(http.ListenAndServe(":8341", nil))
 }
