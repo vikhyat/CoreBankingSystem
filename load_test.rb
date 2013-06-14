@@ -19,8 +19,14 @@ def random_request_url
   ].sample
 end
 
-loop do
-  url = random_request_url
-  puts url
-  open(url).read rescue nil
+ts = []
+4.times do
+  ts.push(Thread.new {
+    loop do
+      url = random_request_url
+      open(url).read rescue nil
+      puts url
+    end
+  })
 end
+ts.each {|t| t.join }
