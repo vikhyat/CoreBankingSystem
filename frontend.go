@@ -89,6 +89,10 @@ func withdrawHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func transferHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "{error: \"not implemented\"}")
+}
+
 func main() {
 	redisConnectionShards, redisErr = redis.Dial("tcp", ":6379")
 	if redisErr != nil {
@@ -97,6 +101,7 @@ func main() {
 
 	http.HandleFunc("/deposit", depositHandler)
 	http.HandleFunc("/withdraw", withdrawHandler)
+	http.HandleFunc("/transfer", transferHandler)
 
 	log.Fatal(http.ListenAndServe(":8341", nil))
 }
