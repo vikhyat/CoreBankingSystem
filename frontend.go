@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const redisInstancesCount = 1
+const redisInstancesCount = 2
 
 var redisConnectionShards [redisInstancesCount]redis.Conn
 var redisErr error
@@ -154,7 +154,7 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	redisInstances := [redisInstancesCount]string{"127.0.0.1:6379"}
+	redisInstances := [redisInstancesCount]string{"10.6.1.160:6379", "10.6.1.163:6379", }
 
 	for i, s := range redisInstances {
 		redisConnectionShards[i], redisErr = redis.Dial("tcp", s)
