@@ -1,11 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 var redisConnectionShards redis.Conn
@@ -21,6 +23,11 @@ func accountKey(account int) string {
 	return fmt.Sprintf("account:%d", account)
 }
 
+// Return the lock key for the given account.
+func accountLockKey(account int) string {
+	return fmt.Sprintf("accountlock:%d", account)
+}
+
 // Return the balance of an account.
 func getBalance(account int) int {
 	redisConnection(account).Do("SETNX", accountKey(account), 0)
@@ -33,12 +40,29 @@ func getBalance(account int) int {
 
 // Acquire the lock on the given account.
 func acquireLock(account int) error {
+	retries := 0
+
+	for retries <= 100 {
+		reply, _ := redis.Int(redisConnection(account).Do("SETNX", accountLockKey(account), "LOCKED"))
+
+		if reply == 1 {
+			redisConnection(account).Do("EXPIRE", accountLockKey(account), 5)
+			return nil
+		} else {
+			time.Sleep(100 * time.Millisecond)
+			retries += 1
+			if retries == 10 {
+				return errors.New("could not acquire lock")
+			}
+		}
+	}
+
 	return nil
 }
 
 // Release the lock on the given account.
-func releaseLock(account int) error {
-	return nil
+func releaseLock(account int) {
+	redisConnection(account).Do("DEL", accountLockKey(account))
 }
 
 func depositHandler(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +152,7 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	redisConnectionShards, redisErr = redis.Dial("tcp", ":6379")
+	redisConnectionShards, redisErr = redis.Dial("tcp", "127.0.0.1:6379")
 	if redisErr != nil {
 		log.Fatal(redisErr)
 	}
