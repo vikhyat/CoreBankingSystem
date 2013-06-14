@@ -20,7 +20,7 @@ def random_request_url
 end
 
 ts = []
-4.times do
+1000.times do
   ts.push(Thread.new {
     loop do
       url = random_request_url
