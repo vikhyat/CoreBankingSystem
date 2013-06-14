@@ -145,7 +145,7 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 
 	if getBalance(source) >= amount {
 		getBalance(destination)
-		redisConnection(source).Do("HDECRBY", "accounts", source, amount)
+		redisConnection(source).Do("HINCRBY", "accounts", source, -amount)
 		redisConnection(destination).Do("HINCRBY", "accounts", destination, amount)
 		fmt.Fprintf(w, "{success: \"ok\"}")
 	} else {
