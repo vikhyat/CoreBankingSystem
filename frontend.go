@@ -2,16 +2,16 @@ package main
 
 import (
 	"errors"
-"runtime"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"log"
 	"net/http"
+	"runtime"
 	"strconv"
 	"time"
 )
 
-const redisInstancesCount = 1
+const redisInstancesCount = 2
 
 var redisConnectionShards [redisInstancesCount]redis.Conn
 var redisErr error
@@ -155,9 +155,9 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-        runtime.GOMAXPROCS(64)
+	runtime.GOMAXPROCS(128)
 
-	redisInstances := [redisInstancesCount]string{"10.6.1.160:6379"}
+	redisInstances := [redisInstancesCount]string{"10.6.1.160:6379", "169.254.9.181:6379"}
 
 	for i, s := range redisInstances {
 		redisConnectionShards[i], redisErr = redis.Dial("tcp", s)
