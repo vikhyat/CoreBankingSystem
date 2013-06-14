@@ -90,7 +90,41 @@ func withdrawHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func transferHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "{error: \"not implemented\"}")
+	source, err := strconv.Atoi(r.FormValue("source"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := acquireLock(source); err != nil {
+		fmt.Fprintf(w, "{error: \"could not acquire lock\"}")
+		return
+	}
+	defer releaseLock(source)
+
+	destination, err := strconv.Atoi(r.FormValue("destination"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := acquireLock(destination); err != nil {
+		fmt.Fprintf(w, "{error: \"could not acquire lock\"}")
+		return
+	}
+	defer releaseLock(destination)
+
+	amount, err := strconv.Atoi(r.FormValue("amount"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if getBalance(source) >= amount {
+		redisConnection(destination).Do("SETNX", accountKey(destination), 0)
+		redisConnection(source).Do("DECRBY", accountKey(source), amount)
+		redisConnection(destination).Do("INCRBY", accountKey(destination), amount)
+		fmt.Fprintf(w, "{success: \"ok\"}")
+	} else {
+		fmt.Fprintf(w, "{error: \"insufficient funds\"}")
+	}
 }
 
 func main() {
