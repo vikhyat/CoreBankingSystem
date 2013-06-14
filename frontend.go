@@ -10,12 +10,14 @@ import (
 	"time"
 )
 
-var redisConnectionShards redis.Conn
+const redisInstancesCount = 1
+
+var redisConnectionShards [redisInstancesCount]redis.Conn
 var redisErr error
 
 // Return a connection to the Redis instance that is responsible for this account.
 func redisConnection(account int) redis.Conn {
-	return redisConnectionShards
+	return redisConnectionShards[account%redisInstancesCount]
 }
 
 // Return the key that will store the account balance.
@@ -152,9 +154,13 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	redisConnectionShards, redisErr = redis.Dial("tcp", "127.0.0.1:6379")
-	if redisErr != nil {
-		log.Fatal(redisErr)
+	redisInstances := [redisInstancesCount]string{"127.0.0.1:6379"}
+
+	for i, s := range redisInstances {
+		redisConnectionShards[i], redisErr = redis.Dial("tcp", s)
+		if redisErr != nil {
+			log.Fatal(redisErr)
+		}
 	}
 
 	http.HandleFunc("/deposit", depositHandler)
