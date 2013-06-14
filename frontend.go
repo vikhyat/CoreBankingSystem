@@ -155,7 +155,7 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-        runtime.GOMAXPROCS(4)
+        runtime.GOMAXPROCS(64)
 
 	redisInstances := [redisInstancesCount]string{"10.6.1.160:6379"}
 
