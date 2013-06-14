@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+"runtime"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"log"
@@ -154,6 +155,8 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+        runtime.GOMAXPROCS(4)
+
 	redisInstances := [redisInstancesCount]string{"10.6.1.160:6379"}
 
 	for i, s := range redisInstances {
