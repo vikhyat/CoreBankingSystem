@@ -30,8 +30,8 @@ func accountLockKey(account int) string {
 
 // Return the balance of an account.
 func getBalance(account int) int {
-	redisConnection(account).Do("SETNX", accountKey(account), 0)
-	balance, err := redis.Int(redisConnection(account).Do("GET", accountKey(account)))
+	redisConnection(account).Do("HSETNX", "accounts", account, 0)
+	balance, err := redis.Int(redisConnection(account).Do("HGET", "accounts", account))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -82,8 +82,8 @@ func depositHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	redisConnection(account).Do("SETNX", accountKey(account), 0)
-	redisConnection(account).Do("INCRBY", accountKey(account), amount)
+	getBalance(account)
+	redisConnection(account).Do("HINCRBY", "accounts", account, amount)
 
 	fmt.Fprintf(w, "{account: %d, balance: %d}", account, getBalance(account))
 }
@@ -106,7 +106,7 @@ func withdrawHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if getBalance(account) >= amount {
-		redisConnection(account).Do("DECRBY", accountKey(account), amount)
+		redisConnection(account).Do("HINCRBY", "accounts", account, -amount)
 		fmt.Fprintf(w, "{account: %d, balance: %d}", account, getBalance(account))
 	} else {
 		fmt.Fprintf(w, "{error: \"insufficient funds\"}")
@@ -142,9 +142,9 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if getBalance(source) >= amount {
-		redisConnection(destination).Do("SETNX", accountKey(destination), 0)
-		redisConnection(source).Do("DECRBY", accountKey(source), amount)
-		redisConnection(destination).Do("INCRBY", accountKey(destination), amount)
+		getBalance(destination)
+		redisConnection(source).Do("HDECRBY", "accounts", source, amount)
+		redisConnection(destination).Do("HINCRBY", "accounts", destination, amount)
 		fmt.Fprintf(w, "{success: \"ok\"}")
 	} else {
 		fmt.Fprintf(w, "{error: \"insufficient funds\"}")
