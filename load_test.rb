@@ -24,7 +24,7 @@ ts = []
   ts.push(Thread.new {
     loop do
       url = random_request_url
-      open(url).read rescue nil
+      open(url, proxy: nil).read rescue nil
       puts url
     end
   })
