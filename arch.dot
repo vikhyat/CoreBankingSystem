@@ -1,0 +1,12 @@
+digraph Architecture {
+  Users -> HAProxy;
+  HAProxy -> Web1;
+  HAProxy -> Web2;
+  HAProxy -> Web3;
+  Web1 -> Redis1;
+  Web1 -> Redis2;
+  Web2 -> Redis1;
+  Web2 -> Redis2;
+  Web3 -> Redis1;
+  Web3 -> Redis2;
+}
