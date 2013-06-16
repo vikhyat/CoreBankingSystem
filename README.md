@@ -8,7 +8,7 @@ We wrote the backend web server in Go, and used Redis as the primary data store.
 
 The back-end is, therefore, completely scalable since the number of Redis instances and the number of Go web servers can be increased arbitrarily and independently. The only component that cannot be scaled horizontally is the load-balancer.
 
-![Image](../blob/master/arch.png?raw=true)
+![Image](../master/arch.png?raw=true)
 
 Performance Evaluation
 ----------------------
